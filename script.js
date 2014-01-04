@@ -7,7 +7,7 @@ var KEYCODE_RIGHT = 39;
 
 var scale = 4;
 
-//document.onkeydown = handleKeyDown;
+document.onkeydown = handleKeyDown;
 
 var wd;
 var ht;
@@ -95,8 +95,6 @@ function handleComplete() {
   stage.addChild(program);
   drawProgram();
 
-
-
   {
   arrow = new createjs.Bitmap(loader.getResult("arrow"));
   var bounds = arrow.getBounds();
@@ -120,30 +118,57 @@ function handleComplete() {
   stage.update();
 
   createjs.Ticker.on("tick", tick);
-  createjs.Ticker.setFPS(15);
+  createjs.Ticker.setFPS(5);
 }
+
+var update = false;
 
 function tick(event) {
-
+  
+  if (update) {
+  turtle.x = tile_wd * grid_x;
+  turtle.y = tile_wd * grid_y;
+  update = false;
+  }
   stage.update(event);
 }
-
 
 function handleKeyDown(e) {
   // cross browse issue?
   if (!e) { var e = window.event; }
 
   var step = scale;
+  if (update === false) {
   switch (e.keyCode) {
     case KEYCODE_LEFT:
+      grid_x -= 1;
+      if (grid_x < grid_x_min) {
+        grid_x = grid_x_min;
+      }
+      update = true;
       return false;
     case KEYCODE_RIGHT:
+      grid_x += 1;
+      if (grid_x >= grid_x_max) {
+        grid_x = grid_x_max - 1;
+      }
+      update = true;
       return false;
    case KEYCODE_UP:
+      grid_y -= 1;
+      if (grid_y < grid_y_min) {
+        grid_y = grid_y_min;
+      }
+      update = true;
       return false;
    case KEYCODE_DOWN:
+      grid_y += 1;
+      if (grid_y >= grid_y_max) {
+        grid_y = grid_y_max - 1;
+      }
+      update = true;
       return false;
   }
- 
-
+  }
 }
+
