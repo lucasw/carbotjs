@@ -35,20 +35,74 @@ function init() {
   loader.loadManifest(manifest);
 }
 
+var grid;
+var program;
+var palette;
+
 var turtle;
 var arrow;
-var tile_wd = 96;
+var tile_wd = 80;
+var tile_ht = tile_wd;
 var grid_x = 4;
 var grid_y = 4;
 
+var grid_x_min = 1;
+var grid_y_min = 0;
+var grid_x_max = 12;
+var grid_y_max = 8;
+
+var prog_x_min = 1;
+var prog_y_min = 8;
+var prog_x_max = 12;
+var prog_y_max = 9;
+
+var pad = 4;
+
+function drawGrid() {
+  
+  for (var i = grid_x_min; i < grid_x_max; i++) {
+    for (var j = grid_y_min; j < grid_y_max; j++) {
+      var cell = new createjs.Shape();
+      cell.x = i * tile_wd;
+      cell.y = j * tile_wd;
+      cell.graphics.beginFill("#cccccc").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      grid.addChild(cell);
+    }
+  }
+}
+
+
+function drawProgram() {
+  
+  for (var i = prog_x_min; i < prog_x_max; i++) {
+    for (var j = prog_y_min; j < prog_y_max; j++) {
+      var cell = new createjs.Shape();
+      cell.x = i * tile_wd;
+      cell.y = j * tile_wd;
+      cell.graphics.beginFill("#bbffbb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      program.addChild(cell);
+    }
+  }
+}
+
 function handleComplete() {
+  
+  grid = new createjs.Container();
+  stage.addChild(grid);
+  drawGrid();
+ 
+  program = new createjs.Container();
+  stage.addChild(program);
+  drawProgram();
+
+
 
   {
   arrow = new createjs.Bitmap(loader.getResult("arrow"));
   var bounds = arrow.getBounds();
   arrow.scaleX = tile_wd/bounds.width;
   arrow.scaleY = tile_wd/bounds.height;
-  arrow.x = tile_wd;
+  arrow.x = 0;
   arrow.y = tile_wd;
   stage.addChild(arrow);
   }
