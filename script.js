@@ -27,7 +27,8 @@ function init() {
 
   manifest = [
     {src:"assets/arrow.png", id:"arrow"},
-    {src:"assets/turtle.png", id:"turtle"}
+    {src:"assets/turtle.png", id:"turtle"},
+    {src:"assets/go.png", id:"go"}
   ];
 
   loader = new createjs.LoadQueue(false);
@@ -41,8 +42,10 @@ var palette;
 
 var command_list = [];
 
-var turtle;
 var arrow;
+var go_button;
+
+var turtle;
 var tile_wd = 80;
 var tile_ht = tile_wd;
 var grid_x = 4;
@@ -61,19 +64,19 @@ var prog_y_max = 9;
 var pad = 4;
 
 // TODO this and CommandMove I think will merge
-function Arrow(x, y) {
-  this.im = new createjs.Bitmap(loader.getResult("arrow"));
+function Item(name, x, y) {
+  this.im = new createjs.Bitmap(loader.getResult(name));
   var bounds = this.im.getBounds();
   this.im.scaleX = tile_wd/bounds.width;
   this.im.scaleY = tile_wd/bounds.height;
   this.im.x = x * tile_wd;
   this.im.y = y * tile_wd;
-  console.log("new arrow at " + x + " " + y);
+  console.log("new " + name + " at " + x + " " + y);
   
 }
 
 function CommandMove() {
-  var arr = new Arrow(prog_x_min * command_list.length, prog_y_min);
+  var arr = new Item("arrow", prog_x_min * command_list.length, prog_y_min);
   program.addChild(arr.im);
 } // CommandMove
 
@@ -114,11 +117,14 @@ function handleComplete() {
   stage.addChild(program);
   drawProgram();
 
-  arrow = new Arrow(0, 1);
+  arrow = new Item("arrow", 0, 1);
   //arrow.im.addEventListener("click", function(event) {
   //  command_list.push(new CommandMove());
   // }); 
   stage.addChild(arrow.im);
+
+  go_button = new Item("go", 0, grid_y_max - 1);
+  stage.addChild(go_button.im);
 
   {
   turtle = new createjs.Bitmap(loader.getResult("turtle"));
