@@ -39,6 +39,8 @@ var grid;
 var program;
 var palette;
 
+var command_list = [];
+
 var turtle;
 var arrow;
 var tile_wd = 80;
@@ -57,6 +59,23 @@ var prog_x_max = 12;
 var prog_y_max = 9;
 
 var pad = 4;
+
+// TODO this and CommandMove I think will merge
+function Arrow(x, y) {
+  this.im = new createjs.Bitmap(loader.getResult("arrow"));
+  var bounds = this.im.getBounds();
+  this.im.scaleX = tile_wd/bounds.width;
+  this.im.scaleY = tile_wd/bounds.height;
+  this.im.x = x * tile_wd;
+  this.im.y = y * tile_wd;
+  console.log("new arrow at " + x + " " + y);
+  
+}
+
+function CommandMove() {
+  var arr = new Arrow(prog_x_min * command_list.length, prog_y_min);
+  program.addChild(arr.im);
+} // CommandMove
 
 function drawGrid() {
   
@@ -95,15 +114,11 @@ function handleComplete() {
   stage.addChild(program);
   drawProgram();
 
-  {
-  arrow = new createjs.Bitmap(loader.getResult("arrow"));
-  var bounds = arrow.getBounds();
-  arrow.scaleX = tile_wd/bounds.width;
-  arrow.scaleY = tile_wd/bounds.height;
-  arrow.x = 0;
-  arrow.y = tile_wd;
-  stage.addChild(arrow);
-  }
+  arrow = new Arrow(0, 1);
+  //arrow.im.addEventListener("click", function(event) {
+  //  command_list.push(new CommandMove());
+  // }); 
+  stage.addChild(arrow.im);
 
   {
   turtle = new createjs.Bitmap(loader.getResult("turtle"));
@@ -160,6 +175,8 @@ function handleKeyDown(e) {
         grid_y = grid_y_min;
       }
       update = true;
+
+      command_list.push(new CommandMove());
       return false;
    case KEYCODE_DOWN:
       grid_y += 1;
