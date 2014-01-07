@@ -15,7 +15,9 @@ var loader;
 var turtle;
 
 prog_cells = [];
+prog_results = [];
 grid_cells = [];
+
 
 function init() {
   stage = new createjs.Stage("pixbot");
@@ -63,9 +65,9 @@ var grid_x_max = 12;
 var grid_y_max = 8;
 
 var prog_x_min = 1;
-var prog_y_min = 8;
-var prog_x_max = 12;
-var prog_y_max = 9;
+var prog_y_min = grid_y_max + 1;
+var prog_x_max = grid_x_max;
+var prog_y_max = prog_y_min + 1;
 
 var pad = 4;
 
@@ -176,6 +178,7 @@ function handleComplete() {
   program = new createjs.Container();
   stage.addChild(program);
   prog_cells = drawProgram();
+  prog_results.length = prog_cells.length;
 
   arrow = new Item("up", 0, 1);
   //arrow.im.addEventListener("click", function(event) {
@@ -215,19 +218,26 @@ function tick(event) {
       var success = command_list[prog_counter].execute();
       turtle.x = tile_wd * grid_x;
       turtle.y = tile_wd * grid_y;
-      
+      prog_results[prog_counter] = success;
+
+      for (var i = 0; i < prog_counter; i++) {
+        var color = "#559955";
+        if (!prog_results[i]) {
+          color = "#995555";
+        }
+        prog_cells[i].graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      }
+
       var color = "#22ff22";
       if (!success) {
         color = "#ff2222";
       }
-
-      for (var i = 0; i < prog_counter; i++) {
-        prog_cells[i].graphics.beginFill("#559955").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
-      }
       prog_cells[prog_counter].graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
       prog_counter += 1;
       stage.update(event);
+
     } else {
+
       console.log("done executing " + command_list.length);
       prog_counter = 0;
       is_executing = false;
@@ -235,6 +245,7 @@ function tick(event) {
       for (var i = 0; i < prog_cells.length; i++) {
         prog_cells[i].graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
       }
+
     }
   }
   update = false;
