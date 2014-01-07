@@ -14,6 +14,9 @@ var ht;
 var loader;
 var turtle;
 
+prog_cells = [];
+grid_cells = [];
+
 function init() {
   stage = new createjs.Stage("pixbot");
 
@@ -49,7 +52,7 @@ var arrow;
 var go_button;
 
 var turtle;
-var tile_wd = 80;
+var tile_wd = 70;
 var tile_ht = tile_wd;
 var grid_x = 4;
 var grid_y = 4;
@@ -92,36 +95,30 @@ function CommandMove(ndx, ndy, name) {
   this.execute = function() {
     grid_x += dx;
     grid_y += dy;
+    
+    var success = true;
 
     if (grid_x >= grid_x_max) {
       grid_x = grid_x_max - 1;
+      success = false;
     }
     if (grid_y >= grid_y_max) {
       grid_y = grid_y_max - 1;
+      success = false;
     }
     if (grid_y < grid_y_min) {
       grid_y = grid_y_min;
+      success = false;
     }
     if (grid_x < grid_x_min) {
       grid_x = grid_x_min;
+      success = false;
     }
     update = true;
+    return success;
   }
 
 } // CommandMove
-
-function drawGrid() {
-  
-  for (var i = grid_x_min; i < grid_x_max; i++) {
-    for (var j = grid_y_min; j < grid_y_max; j++) {
-      var cell = new createjs.Shape();
-      cell.x = i * tile_wd;
-      cell.y = j * tile_wd;
-      cell.graphics.beginFill("#cccccc").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
-      grid.addChild(cell);
-    }
-  }
-}
 
 function makeCell(i, j, color) {
   var cell = new createjs.Shape();
@@ -131,13 +128,30 @@ function makeCell(i, j, color) {
   return cell;
 }
 
-function drawProgram() {
-  
-  for (var i = prog_x_min; i < prog_x_max; i++) {
-    for (var j = prog_y_min; j < prog_y_max; j++) {
-      program.addChild(makeCell(i, j, "#bbffbb"));
+function drawGrid() {
+  cell_list = []; 
+  for (var i = grid_x_min; i < grid_x_max; i++) {
+    for (var j = grid_y_min; j < grid_y_max; j++) {
+      var cell = makeCell(i, j, "#cccccc"); 
+      cell_list.push(cell);
+      grid.addChild(cell);
     }
   }
+
+  return cell_list;
+}
+
+// TODO make this and drawGrid take x1,y1,x2,y2 parameters and merge them
+function drawProgram() {
+  cell_list = []; 
+  for (var i = prog_x_min; i < prog_x_max; i++) {
+    for (var j = prog_y_min; j < prog_y_max; j++) {
+      var cell = makeCell(i, j, "#bbffbb");
+      cell_list.push(cell);
+      program.addChild(cell);
+    }
+  }
+  return cell_list;
 }
 
 var prog_counter = 0;
@@ -147,17 +161,21 @@ function runProgram(event) {
   console.log("execute");
   prog_counter = 0;
   is_executing = true;
+
+  for (var i = 0; i < prog_cells.length; i++) {
+    prog_cells[i].graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+  }
 }
 
 function handleComplete() {
   
   grid = new createjs.Container();
   stage.addChild(grid);
-  drawGrid();
+  grid_cells = drawGrid();
  
   program = new createjs.Container();
   stage.addChild(program);
-  drawProgram();
+  prog_cells = drawProgram();
 
   arrow = new Item("up", 0, 1);
   //arrow.im.addEventListener("click", function(event) {
@@ -165,11 +183,11 @@ function handleComplete() {
   // }); 
   stage.addChild(arrow.im);
 
-  var cell = makeCell(0, grid_y_max - 1, "#aaffaa");
-  cell.addEventListener("click", runProgram);
-  stage.addChild(cell);
-  //go_button = new Item("go", 0, grid_y_max - 1);
-  //stage.addChild(go_button.im);
+  var go_cell = makeCell(0, grid_y_max - 1, "#22ff22");
+  go_cell.addEventListener("click", runProgram);
+  stage.addChild(go_cell);
+  go_button = new Item("go", 0, grid_y_max - 1);
+  stage.addChild(go_button.im);
 
   {
   turtle = new createjs.Bitmap(loader.getResult("turtle"));
@@ -184,7 +202,7 @@ function handleComplete() {
   stage.update();
 
   createjs.Ticker.on("tick", tick);
-  createjs.Ticker.setFPS(5);
+  createjs.Ticker.setFPS(2);
 }
 
 var update = false;
@@ -194,15 +212,29 @@ function tick(event) {
   if (is_executing) {
 
     if (prog_counter < command_list.length) {
-      command_list[prog_counter].execute();
+      var success = command_list[prog_counter].execute();
       turtle.x = tile_wd * grid_x;
       turtle.y = tile_wd * grid_y;
+      
+      var color = "#22ff22";
+      if (!success) {
+        color = "#ff2222";
+      }
+
+      for (var i = 0; i < prog_counter; i++) {
+        prog_cells[i].graphics.beginFill("#559955").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      }
+      prog_cells[prog_counter].graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
       prog_counter += 1;
       stage.update(event);
     } else {
       console.log("done executing " + command_list.length);
       prog_counter = 0;
       is_executing = false;
+
+      for (var i = 0; i < prog_cells.length; i++) {
+        prog_cells[i].graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      }
     }
   }
   update = false;
@@ -222,10 +254,10 @@ function handleKeyDown(e) {
       command_list.push(new CommandMove( 1, 0, "right"));
       return false;
    case KEYCODE_UP:
-      command_list.push(new CommandMove( 0, 1, "up"));
+      command_list.push(new CommandMove( 0,-1, "up"));
       return false;
    case KEYCODE_DOWN:
-      command_list.push(new CommandMove( 0,-1, "down"));
+      command_list.push(new CommandMove( 0, 1, "down"));
       return false;
   }
   }
