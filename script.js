@@ -1,4 +1,7 @@
-
+/*
+ * Copyright Lucas Walter January 2014
+ * GPL 3.0
+ */
 
 var KEYCODE_UP = 38;                
 var KEYCODE_DOWN = 40;                
@@ -162,6 +165,7 @@ this.addBlack = function() {
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
+  
   var go_cell = makeCell(0, grid_y_max - 1, "#22ff22");
   go_cell.addEventListener("click", runProgram);
   stage.addChild(go_cell);
