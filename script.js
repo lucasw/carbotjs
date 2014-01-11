@@ -41,11 +41,8 @@ function init() {
   loader.loadManifest(manifest);
 }
 
-var grid;
 var palette;
 
-
-var arrow;
 var go_button;
 
 var turtle;
@@ -53,12 +50,14 @@ var tile_wd = 70;
 var tile_ht = tile_wd;
 var grid_x = 4;
 var grid_y = 4;
+var pad = 4;
 
+// TBD make a grid class
+var grid;
 var grid_x_min = 1;
 var grid_y_min = 0;
 var grid_x_max = 12;
 var grid_y_max = 8;
-var pad = 4;
 
 // TODO this and CommandMove I think will merge
 function Item(name, x, y) {
@@ -113,28 +112,28 @@ this.addDown = function() {
   drawProgram();
 
   {
-  arrow = new Item("up", 0, 1);
+  var arrow = new Item("up", 0, 1);
   var go_cell = makeCell(0, 1, "#22ff22");
   go_cell.addEventListener("click", this.addUp);
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
   {
-  arrow = new Item("down", 0, 2);
+  var  arrow = new Item("down", 0, 2);
   var go_cell = makeCell(0, 2, "#22ff22");
   go_cell.addEventListener("click", this.addDown);
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
   {
-  arrow = new Item("left", 0, 3);
+  var arrow = new Item("left", 0, 3);
   var go_cell = makeCell(0, 3, "#22ff22");
   go_cell.addEventListener("click", this.addLeft);
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
   {
-  arrow = new Item("right", 0, 4);
+  var arrow = new Item("right", 0, 4);
   var go_cell = makeCell(0, 4, "#22ff22");
   go_cell.addEventListener("click", this.addRight);
   stage.addChild(go_cell);
@@ -222,14 +221,20 @@ this.update = function() {
       prog_counter = 0;
       is_executing = false;
 
-      
-
     }
   }
   stage.update(event);
 }
 
+function CommandColor(name, new_color) {
+  this.item = new Item(name, prog_x_min + command_list.length, prog_y_min);
+  
+  var color = new_color;
 
+  this.execute = function() {
+    // change the cell under the turtle to color
+  }
+}
 
 function CommandMove(ndx, ndy, name) {
   
