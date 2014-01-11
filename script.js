@@ -91,6 +91,37 @@ function Program() {
   var prog_x_max = grid_x_max;
   var prog_y_max = prog_y_min + 1;
 
+function ProgCell(i, j, new_ind) {
+  this.cell = makeCell(i, j, "#bbffbb");
+  var ind = new_ind;
+  this.cell.addEventListener("click", removeCommand);// removeCommand(cell_list.length));
+  prog_container.addChild(this.cell);
+
+  function removeCommand() {
+    if (ind >= command_list.length) {
+      console.log("bad ind " + ind + " " + command_list.length);
+      return;
+    } 
+    // TBD make this work better, shouldn't depend on these
+    // indices to work
+    console.log("remove ind " + ind + " " + command_list.length);
+    for (var i = ind; i < command_list.length; i++) {
+      command_list[i].item.im.x = prog_x_min + (i) * tile_wd;
+    }
+    prog_container.removeChildAt(ind + prog_x_max - prog_x_min);
+    command_list.splice(ind, 1);
+    console.log("remove ind " + ind + " " + command_list.length);
+  
+  
+      for (var i = 0; i < prog_cells.length; i++) {
+        prog_cells[i].cell.graphics.beginFill("#bb99bb").drawRect(
+            pad, pad, tile_wd - pad, tile_ht - pad);
+      }
+
+    stage.update();
+  }
+}
+
 function commandAdd(command_move) {
   if (command_list.length < prog_x_max - prog_x_min) {
     prog_container.addChild(command_move.item.im);
@@ -172,21 +203,7 @@ this.addBlack = function() {
   go_button = new Item("go", 0, grid_y_max - 1);
   stage.addChild(go_button.im);
 
-function removeCommand(ind)  {
-  console.log("remove ind " + ind);
-}
 
-function ProgCell(i, j, new_ind) {
-  this.cell = makeCell(i, j, "#bbffbb");
-  var ind = new_ind;
-  this.cell.addEventListener("click", removeCommand);// removeCommand(cell_list.length));
-  prog_container.addChild(this.cell);
-
-  function removeCommand() {
-    console.log("remove ind " + ind);
-    
-  }
-}
 
 // draw the visual container of the program
 function drawProgram() {
@@ -266,6 +283,8 @@ function CommandColor(name, new_color) {
     console.log("change " + x + " " + y + " " + cell_ind + " color " + new_color);
     grid_cells[cell_ind].graphics.beginFill(color).drawRect(
         pad, pad, tile_wd - pad, tile_ht - pad);
+  
+    return true;
   }
 }
 
