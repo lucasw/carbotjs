@@ -32,6 +32,8 @@ function init() {
     {src:"assets/left.png", id:"left"},
     {src:"assets/right.png", id:"right"},
     {src:"assets/turtle.png", id:"turtle"},
+    {src:"assets/white.png", id:"white"},
+    {src:"assets/black.png", id:"black"},
     {src:"assets/go.png", id:"go"}
   ];
 
@@ -108,7 +110,10 @@ this.addDown = function() {
 }
 
 this.addWhite = function() {
-  commandAdd(new CommandColor("turtle", "#ffffff"));
+  commandAdd(new CommandColor("white", "#ffffff"));
+}
+this.addBlack = function() {
+  commandAdd(new CommandColor("black", "#000000"));
 }
 
   var prog_container = new createjs.Container();
@@ -116,41 +121,47 @@ this.addWhite = function() {
   drawProgram();
 
   {
-  var arrow = new Item("up", 0, 1);
-  var go_cell = makeCell(0, 1, "#22ff22");
+  var arrow = new Item("up", 0, 0);
+  var go_cell = makeCell(0, 0, "#22dd22");
   go_cell.addEventListener("click", this.addUp);
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
   {
-  var  arrow = new Item("down", 0, 2);
-  var go_cell = makeCell(0, 2, "#22ff22");
+  var  arrow = new Item("down", 0, 1);
+  var go_cell = makeCell(0, 1, "#22dd22");
   go_cell.addEventListener("click", this.addDown);
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
   {
-  var arrow = new Item("left", 0, 3);
-  var go_cell = makeCell(0, 3, "#22ff22");
+  var arrow = new Item("left", 0, 2);
+  var go_cell = makeCell(0, 2, "#22dd22");
   go_cell.addEventListener("click", this.addLeft);
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
   {
-  var arrow = new Item("right", 0, 4);
-  var go_cell = makeCell(0, 4, "#22ff22");
+  var arrow = new Item("right", 0, 3);
+  var go_cell = makeCell(0, 3, "#22dd22");
   go_cell.addEventListener("click", this.addRight);
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
   {
-  var arrow = new Item("turtle", 0, 5);
-  var go_cell = makeCell(0, 5, "#ffffff");
+  var arrow = new Item("white", 0, 4);
+  var go_cell = makeCell(0, 4, "#33ff33");
   go_cell.addEventListener("click", this.addWhite);
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
-
+  {
+  var arrow = new Item("black", 0, 5);
+  var go_cell = makeCell(0, 5, "#33dd33");
+  go_cell.addEventListener("click", this.addBlack);
+  stage.addChild(go_cell);
+  stage.addChild(arrow.im);
+  }
   var go_cell = makeCell(0, grid_y_max - 1, "#22ff22");
   go_cell.addEventListener("click", runProgram);
   stage.addChild(go_cell);
