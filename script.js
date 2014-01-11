@@ -14,8 +14,6 @@ var ht;
 var loader;
 var turtle;
 
-prog_cells = [];
-prog_results = [];
 grid_cells = [];
 
 function init() {
@@ -44,7 +42,6 @@ function init() {
 }
 
 var grid;
-var program;
 var palette;
 
 
@@ -74,12 +71,13 @@ function Item(name, x, y) {
   this.im.x = x * tile_wd;
   this.im.y = y * tile_wd;
   console.log("new " + name + " at " + x + " " + y);
-  
 }
 
 // TODO make this and drawGrid take x1,y1,x2,y2 parameters and merge them
 function Program() {
   var command_list = [];
+  prog_cells = [];
+  prog_results = [];
 
   var prog_counter = 0;
   var is_executing = false;
@@ -108,10 +106,9 @@ this.addDown = function() {
   commandAdd(new CommandMove( 0, 1, "down"));
 }
 
-  program = new createjs.Container();
-  stage.addChild(program);
-  prog_cells = drawProgram();
-  prog_results.length = prog_cells.length;
+  var prog_container = new createjs.Container();
+  stage.addChild(prog_container);
+  drawProgram();
 
   {
   arrow = new Item("up", 0, 1);
@@ -148,17 +145,31 @@ this.addDown = function() {
   go_button = new Item("go", 0, grid_y_max - 1);
   stage.addChild(go_button.im);
 
+function removeCommand(ind)  {
+  console.log("remove ind " + ind);
+}
 
+function ProgCell(i, j, new_ind) {
+  this.cell = makeCell(i, j, "#bbffbb");
+  var ind = new_ind;
+  this.cell.addEventListener("click", removeCommand);// removeCommand(cell_list.length));
+  prog_container.addChild(this.cell);
+
+  function removeCommand() {
+    console.log("remove ind " + ind);
+    
+  }
+}
+
+// draw the visual container of the program
 function drawProgram() {
-  cell_list = []; 
   for (var i = prog_x_min; i < prog_x_max; i++) {
     for (var j = prog_y_min; j < prog_y_max; j++) {
-      var cell = makeCell(i, j, "#bbffbb");
-      cell_list.push(cell);
-      program.addChild(cell);
+      var prog_cell = new ProgCell(i, j, prog_cells.length)
+      prog_cells.push(prog_cell);
     }
   }
-  return cell_list;
+  prog_results.length = prog_cells.length;
 }
 
 function runProgram(event) {
@@ -167,7 +178,7 @@ function runProgram(event) {
   is_executing = true;
 
   for (var i = 0; i < prog_cells.length; i++) {
-    prog_cells[i].graphics.beginFill("#bb99bb").drawRect(
+    prog_cells[i].cell.graphics.beginFill("#bb99bb").drawRect(
         pad, pad, tile_wd - pad, tile_ht - pad);
   }
 }
@@ -187,14 +198,14 @@ this.update = function() {
         if (!prog_results[i]) {
           color = "#995555";
         }
-        prog_cells[i].graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+        prog_cells[i].cell.graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
       }
 
       var color = "#22ff22";
       if (!success) {
         color = "#ff2222";
       }
-      prog_cells[prog_counter].graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      prog_cells[prog_counter].cell.graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
       prog_counter += 1;
       stage.update(event);
 
@@ -205,7 +216,7 @@ this.update = function() {
       is_executing = false;
 
       for (var i = 0; i < prog_cells.length; i++) {
-        prog_cells[i].graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+        prog_cells[i].cell.graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
       }
 
     }
@@ -217,7 +228,7 @@ this.update = function() {
 function CommandMove(ndx, ndy, name) {
   
   var item = new Item(name, prog_x_min + command_list.length, prog_y_min);
-  program.addChild(item.im);
+  prog_container.addChild(item.im);
   stage.update();
   
   var dx = ndx;
