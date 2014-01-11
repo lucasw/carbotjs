@@ -212,16 +212,17 @@ this.update = function() {
           pad, pad, tile_wd - pad, tile_ht - pad);
       prog_counter += 1;
 
+      for (var i = prog_counter; i < prog_cells.length; i++) {
+        prog_cells[i].cell.graphics.beginFill("#bb99bb").drawRect(
+            pad, pad, tile_wd - pad, tile_ht - pad);
+      }
     } else {
 
       console.log("done executing " + command_list.length);
       prog_counter = 0;
       is_executing = false;
 
-      for (var i = 0; i < prog_cells.length; i++) {
-        prog_cells[i].cell.graphics.beginFill("#bb99bb").drawRect(
-            pad, pad, tile_wd - pad, tile_ht - pad);
-      }
+      
 
     }
   }
