@@ -18,7 +18,6 @@ prog_cells = [];
 prog_results = [];
 grid_cells = [];
 
-
 function init() {
   stage = new createjs.Stage("pixbot");
 
@@ -48,7 +47,6 @@ var grid;
 var program;
 var palette;
 
-var command_list = [];
 
 var arrow;
 var go_button;
@@ -63,12 +61,6 @@ var grid_x_min = 1;
 var grid_y_min = 0;
 var grid_x_max = 12;
 var grid_y_max = 8;
-
-var prog_x_min = 1;
-var prog_y_min = grid_y_max + 1;
-var prog_x_max = grid_x_max;
-var prog_y_max = prog_y_min + 1;
-
 var pad = 4;
 
 // TODO this and CommandMove I think will merge
@@ -86,6 +78,77 @@ function Item(name, x, y) {
 }
 
 // TODO make this and drawGrid take x1,y1,x2,y2 parameters and merge them
+function Program() {
+  var command_list = [];
+
+  var prog_counter = 0;
+  var is_executing = false;
+
+  var prog_x_min = 1;
+  var prog_y_min = grid_y_max + 1;
+  var prog_x_max = grid_x_max;
+  var prog_y_max = prog_y_min + 1;
+
+function commandAdd(command_move) {
+  if (command_list.length < prog_x_max - prog_x_min - 1) {
+    command_list.push(command_move);
+  }
+}
+
+this.addLeft = function() {
+  commandAdd(new CommandMove(-1, 0, "left"));
+}
+this.addRight = function() {
+  commandAdd(new CommandMove( 1, 0, "right"));
+}
+this.addUp = function() {
+  commandAdd(new CommandMove( 0,-1, "up"));
+}
+this.addDown = function() {
+  commandAdd(new CommandMove( 0, 1, "down"));
+}
+
+  program = new createjs.Container();
+  stage.addChild(program);
+  prog_cells = drawProgram();
+  prog_results.length = prog_cells.length;
+
+  {
+  arrow = new Item("up", 0, 1);
+  var go_cell = makeCell(0, 1, "#22ff22");
+  go_cell.addEventListener("click", this.addUp);
+  stage.addChild(go_cell);
+  stage.addChild(arrow.im);
+  }
+  {
+  arrow = new Item("down", 0, 2);
+  var go_cell = makeCell(0, 2, "#22ff22");
+  go_cell.addEventListener("click", this.addDown);
+  stage.addChild(go_cell);
+  stage.addChild(arrow.im);
+  }
+  {
+  arrow = new Item("left", 0, 3);
+  var go_cell = makeCell(0, 3, "#22ff22");
+  go_cell.addEventListener("click", this.addLeft);
+  stage.addChild(go_cell);
+  stage.addChild(arrow.im);
+  }
+  {
+  arrow = new Item("right", 0, 4);
+  var go_cell = makeCell(0, 4, "#22ff22");
+  go_cell.addEventListener("click", this.addRight);
+  stage.addChild(go_cell);
+  stage.addChild(arrow.im);
+  }
+
+  var go_cell = makeCell(0, grid_y_max - 1, "#22ff22");
+  go_cell.addEventListener("click", runProgram);
+  stage.addChild(go_cell);
+  go_button = new Item("go", 0, grid_y_max - 1);
+  stage.addChild(go_button.im);
+
+
 function drawProgram() {
   cell_list = []; 
   for (var i = prog_x_min; i < prog_x_max; i++) {
@@ -98,31 +161,57 @@ function drawProgram() {
   return cell_list;
 }
 
-var prog_counter = 0;
-var is_executing = false;
-
 function runProgram(event) {
   console.log("execute");
   prog_counter = 0;
   is_executing = true;
 
   for (var i = 0; i < prog_cells.length; i++) {
-    prog_cells[i].graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+    prog_cells[i].graphics.beginFill("#bb99bb").drawRect(
+        pad, pad, tile_wd - pad, tile_ht - pad);
   }
 }
 
-function addLeft() {
-  command_list.push(new CommandMove(-1, 0, "left"));
+this.update = function() {
+
+  if (is_executing) {
+
+    if (prog_counter < command_list.length) {
+      var success = command_list[prog_counter].execute();
+      turtle.x = tile_wd * grid_x;
+      turtle.y = tile_wd * grid_y;
+      prog_results[prog_counter] = success;
+
+      for (var i = 0; i < prog_counter; i++) {
+        var color = "#559955";
+        if (!prog_results[i]) {
+          color = "#995555";
+        }
+        prog_cells[i].graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      }
+
+      var color = "#22ff22";
+      if (!success) {
+        color = "#ff2222";
+      }
+      prog_cells[prog_counter].graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      prog_counter += 1;
+      stage.update(event);
+
+    } else {
+
+      console.log("done executing " + command_list.length);
+      prog_counter = 0;
+      is_executing = false;
+
+      for (var i = 0; i < prog_cells.length; i++) {
+        prog_cells[i].graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      }
+
+    }
+  }
 }
-function addRight() {
-  command_list.push(new CommandMove( 1, 0, "right"));
-}
-function addUp() {
-  command_list.push(new CommandMove( 0,-1, "up"));
-}
-function addDown() {
-  command_list.push(new CommandMove( 0, 1, "down"));
-}
+
 
 
 function CommandMove(ndx, ndy, name) {
@@ -162,6 +251,8 @@ function CommandMove(ndx, ndy, name) {
 
 } // CommandMove
 
+} // Program
+
 function makeCell(i, j, color) {
   var cell = new createjs.Shape();
   cell.x = i * tile_wd;
@@ -182,51 +273,16 @@ function drawGrid() {
 
   return cell_list;
 }
+
+var the_program;
+
 function handleComplete() {
   
   grid = new createjs.Container();
   stage.addChild(grid);
   grid_cells = drawGrid();
- 
-  program = new createjs.Container();
-  stage.addChild(program);
-  prog_cells = drawProgram();
-  prog_results.length = prog_cells.length;
 
-  {
-  arrow = new Item("up", 0, 1);
-  var go_cell = makeCell(0, 1, "#22ff22");
-  go_cell.addEventListener("click", addUp);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  {
-  arrow = new Item("down", 0, 2);
-  var go_cell = makeCell(0, 2, "#22ff22");
-  go_cell.addEventListener("click", addDown);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  {
-  arrow = new Item("left", 0, 3);
-  var go_cell = makeCell(0, 3, "#22ff22");
-  go_cell.addEventListener("click", addLeft);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  {
-
-  arrow = new Item("right", 0, 4);
-  var go_cell = makeCell(0, 4, "#22ff22");
-  go_cell.addEventListener("click", addRight);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  var go_cell = makeCell(0, grid_y_max - 1, "#22ff22");
-  go_cell.addEventListener("click", runProgram);
-  stage.addChild(go_cell);
-  go_button = new Item("go", 0, grid_y_max - 1);
-  stage.addChild(go_button.im);
+  the_program = new Program();
 
   {
   turtle = new createjs.Bitmap(loader.getResult("turtle"));
@@ -244,46 +300,13 @@ function handleComplete() {
   createjs.Ticker.setFPS(2);
 }
 
+// update limits commands from being added too quickly
 var update = false;
 
 function tick(event) {
-  
-  if (is_executing) {
+ 
+  the_program.update();
 
-    if (prog_counter < command_list.length) {
-      var success = command_list[prog_counter].execute();
-      turtle.x = tile_wd * grid_x;
-      turtle.y = tile_wd * grid_y;
-      prog_results[prog_counter] = success;
-
-      for (var i = 0; i < prog_counter; i++) {
-        var color = "#559955";
-        if (!prog_results[i]) {
-          color = "#995555";
-        }
-        prog_cells[i].graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
-      }
-
-      var color = "#22ff22";
-      if (!success) {
-        color = "#ff2222";
-      }
-      prog_cells[prog_counter].graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
-      prog_counter += 1;
-      stage.update(event);
-
-    } else {
-
-      console.log("done executing " + command_list.length);
-      prog_counter = 0;
-      is_executing = false;
-
-      for (var i = 0; i < prog_cells.length; i++) {
-        prog_cells[i].graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
-      }
-
-    }
-  }
   update = false;
 }
 
@@ -291,20 +314,21 @@ function handleKeyDown(e) {
   // cross browse issue?
   if (!e) { var e = window.event; }
 
-  if ((update === false) && (command_list.length < prog_x_max - prog_x_min)) {
+  if (update === false) 
+  {
     update = true;
   switch (e.keyCode) {
     case KEYCODE_LEFT:
-      addLeft();
+      the_program.addLeft();
       return false;
     case KEYCODE_RIGHT:
-      addRight();
+      the_program.addRight();
       return false;
    case KEYCODE_UP:
-      addUp();
+      the_program.addUp();
       return false;
    case KEYCODE_DOWN:
-      addDown();
+      the_program.addDown();
       return false;
   }
   }
