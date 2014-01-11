@@ -88,7 +88,9 @@ function Program() {
   var prog_y_max = prog_y_min + 1;
 
 function commandAdd(command_move) {
-  if (command_list.length < prog_x_max - prog_x_min - 1) {
+  if (command_list.length < prog_x_max - prog_x_min) {
+    prog_container.addChild(command_move.item.im);
+    stage.update();
     command_list.push(command_move);
   }
 }
@@ -198,16 +200,17 @@ this.update = function() {
         if (!prog_results[i]) {
           color = "#995555";
         }
-        prog_cells[i].cell.graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+        prog_cells[i].cell.graphics.beginFill(color).drawRect(
+            pad, pad, tile_wd - pad, tile_ht - pad);
       }
 
       var color = "#22ff22";
       if (!success) {
         color = "#ff2222";
       }
-      prog_cells[prog_counter].cell.graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+      prog_cells[prog_counter].cell.graphics.beginFill(color).drawRect(
+          pad, pad, tile_wd - pad, tile_ht - pad);
       prog_counter += 1;
-      stage.update(event);
 
     } else {
 
@@ -216,20 +219,20 @@ this.update = function() {
       is_executing = false;
 
       for (var i = 0; i < prog_cells.length; i++) {
-        prog_cells[i].cell.graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+        prog_cells[i].cell.graphics.beginFill("#bb99bb").drawRect(
+            pad, pad, tile_wd - pad, tile_ht - pad);
       }
 
     }
   }
+  stage.update(event);
 }
 
 
 
 function CommandMove(ndx, ndy, name) {
   
-  var item = new Item(name, prog_x_min + command_list.length, prog_y_min);
-  prog_container.addChild(item.im);
-  stage.update();
+  this.item = new Item(name, prog_x_min + command_list.length, prog_y_min);
   
   var dx = ndx;
   var dy = ndy;
