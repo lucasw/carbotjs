@@ -85,6 +85,46 @@ function Item(name, x, y) {
   
 }
 
+// TODO make this and drawGrid take x1,y1,x2,y2 parameters and merge them
+function drawProgram() {
+  cell_list = []; 
+  for (var i = prog_x_min; i < prog_x_max; i++) {
+    for (var j = prog_y_min; j < prog_y_max; j++) {
+      var cell = makeCell(i, j, "#bbffbb");
+      cell_list.push(cell);
+      program.addChild(cell);
+    }
+  }
+  return cell_list;
+}
+
+var prog_counter = 0;
+var is_executing = false;
+
+function runProgram(event) {
+  console.log("execute");
+  prog_counter = 0;
+  is_executing = true;
+
+  for (var i = 0; i < prog_cells.length; i++) {
+    prog_cells[i].graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+  }
+}
+
+function addLeft() {
+  command_list.push(new CommandMove(-1, 0, "left"));
+}
+function addRight() {
+  command_list.push(new CommandMove( 1, 0, "right"));
+}
+function addUp() {
+  command_list.push(new CommandMove( 0,-1, "up"));
+}
+function addDown() {
+  command_list.push(new CommandMove( 0, 1, "down"));
+}
+
+
 function CommandMove(ndx, ndy, name) {
   
   var item = new Item(name, prog_x_min + command_list.length, prog_y_min);
@@ -142,33 +182,6 @@ function drawGrid() {
 
   return cell_list;
 }
-
-// TODO make this and drawGrid take x1,y1,x2,y2 parameters and merge them
-function drawProgram() {
-  cell_list = []; 
-  for (var i = prog_x_min; i < prog_x_max; i++) {
-    for (var j = prog_y_min; j < prog_y_max; j++) {
-      var cell = makeCell(i, j, "#bbffbb");
-      cell_list.push(cell);
-      program.addChild(cell);
-    }
-  }
-  return cell_list;
-}
-
-var prog_counter = 0;
-var is_executing = false;
-
-function runProgram(event) {
-  console.log("execute");
-  prog_counter = 0;
-  is_executing = true;
-
-  for (var i = 0; i < prog_cells.length; i++) {
-    prog_cells[i].graphics.beginFill("#bb99bb").drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
-  }
-}
-
 function handleComplete() {
   
   grid = new createjs.Container();
@@ -180,12 +193,35 @@ function handleComplete() {
   prog_cells = drawProgram();
   prog_results.length = prog_cells.length;
 
+  {
   arrow = new Item("up", 0, 1);
-  //arrow.im.addEventListener("click", function(event) {
-  //  command_list.push(new CommandMove());
-  // }); 
+  var go_cell = makeCell(0, 1, "#22ff22");
+  go_cell.addEventListener("click", addUp);
+  stage.addChild(go_cell);
   stage.addChild(arrow.im);
+  }
+  {
+  arrow = new Item("down", 0, 2);
+  var go_cell = makeCell(0, 2, "#22ff22");
+  go_cell.addEventListener("click", addDown);
+  stage.addChild(go_cell);
+  stage.addChild(arrow.im);
+  }
+  {
+  arrow = new Item("left", 0, 3);
+  var go_cell = makeCell(0, 3, "#22ff22");
+  go_cell.addEventListener("click", addLeft);
+  stage.addChild(go_cell);
+  stage.addChild(arrow.im);
+  }
+  {
 
+  arrow = new Item("right", 0, 4);
+  var go_cell = makeCell(0, 4, "#22ff22");
+  go_cell.addEventListener("click", addRight);
+  stage.addChild(go_cell);
+  stage.addChild(arrow.im);
+  }
   var go_cell = makeCell(0, grid_y_max - 1, "#22ff22");
   go_cell.addEventListener("click", runProgram);
   stage.addChild(go_cell);
@@ -259,16 +295,16 @@ function handleKeyDown(e) {
     update = true;
   switch (e.keyCode) {
     case KEYCODE_LEFT:
-      command_list.push(new CommandMove(-1, 0, "left"));
+      addLeft();
       return false;
     case KEYCODE_RIGHT:
-      command_list.push(new CommandMove( 1, 0, "right"));
+      addRight();
       return false;
    case KEYCODE_UP:
-      command_list.push(new CommandMove( 0,-1, "up"));
+      addUp();
       return false;
    case KEYCODE_DOWN:
-      command_list.push(new CommandMove( 0, 1, "down"));
+      addDown();
       return false;
   }
   }
