@@ -14,7 +14,6 @@ var ht;
 var loader;
 var turtle;
 
-grid_cells = [];
 
 function init() {
   stage = new createjs.Stage("pixbot");
@@ -53,7 +52,8 @@ var grid_y = 4;
 var pad = 4;
 
 // TBD make a grid class
-var grid;
+var grid_container;
+grid_cells = [];
 var grid_x_min = 1;
 var grid_y_min = 0;
 var grid_x_max = 12;
@@ -107,6 +107,10 @@ this.addDown = function() {
   commandAdd(new CommandMove( 0, 1, "down"));
 }
 
+this.addWhite = function() {
+  commandAdd(new CommandColor("turtle", "#ffffff"));
+}
+
   var prog_container = new createjs.Container();
   stage.addChild(prog_container);
   drawProgram();
@@ -136,6 +140,13 @@ this.addDown = function() {
   var arrow = new Item("right", 0, 4);
   var go_cell = makeCell(0, 4, "#22ff22");
   go_cell.addEventListener("click", this.addRight);
+  stage.addChild(go_cell);
+  stage.addChild(arrow.im);
+  }
+  {
+  var arrow = new Item("turtle", 0, 5);
+  var go_cell = makeCell(0, 5, "#ffffff");
+  go_cell.addEventListener("click", this.addWhite);
   stage.addChild(go_cell);
   stage.addChild(arrow.im);
   }
@@ -233,6 +244,13 @@ function CommandColor(name, new_color) {
 
   this.execute = function() {
     // change the cell under the turtle to color
+    var x = turtle.x / tile_wd - grid_x_min;
+    var y = turtle.y / tile_ht - grid_y_min;
+
+    cell_ind = y * (grid_x_max - grid_x_min) + x;
+    console.log("change " + x + " " + y + " " + cell_ind + " color " + new_color);
+    grid_cells[cell_ind].graphics.beginFill(color).drawRect(
+        pad, pad, tile_wd - pad, tile_ht - pad);
   }
 }
 
@@ -283,11 +301,11 @@ function makeCell(i, j, color) {
 
 function drawGrid() {
   cell_list = []; 
-  for (var i = grid_x_min; i < grid_x_max; i++) {
-    for (var j = grid_y_min; j < grid_y_max; j++) {
+  for (var j = grid_y_min; j < grid_y_max; j++) {
+    for (var i = grid_x_min; i < grid_x_max; i++) {
       var cell = makeCell(i, j, "#cccccc"); 
       cell_list.push(cell);
-      grid.addChild(cell);
+      grid_container.addChild(cell);
     }
   }
 
@@ -298,8 +316,8 @@ var the_program;
 
 function handleComplete() {
   
-  grid = new createjs.Container();
-  stage.addChild(grid);
+  grid_container = new createjs.Container();
+  stage.addChild(grid_container);
   grid_cells = drawGrid();
 
   the_program = new Program();
