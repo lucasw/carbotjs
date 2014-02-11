@@ -30,11 +30,11 @@ document.onkeydown = handleKeyDown;
 var wd;
 var ht;
 var loader;
-var turtle;
+var car;
 
 
 function init() {
-  stage = new createjs.Stage("pixbot");
+  stage = new createjs.Stage("carbot");
 
   wd = stage.canvas.width;
   ht = stage.canvas.height;
@@ -45,13 +45,11 @@ function init() {
   context.webkitImageSmoothingEnabled = false;
 
   manifest = [
-    {src:"assets/up.png", id:"up"},
-    {src:"assets/down.png", id:"down"},
+    {src:"assets/car.png", id:"car"},
     {src:"assets/left.png", id:"left"},
     {src:"assets/right.png", id:"right"},
-    {src:"assets/turtle.png", id:"turtle"},
-    {src:"assets/white.png", id:"white"},
-    {src:"assets/black.png", id:"black"},
+    {src:"assets/gas.png", id:"gas"},
+    {src:"assets/brake_reverse.png", id:"brake_reverse"},
     {src:"assets/go.png", id:"go"}
   ];
 
@@ -64,7 +62,7 @@ var palette;
 
 var go_button;
 
-var turtle;
+var car;
 var tile_wd = 70;
 var tile_ht = tile_wd;
 var grid_x = 4;
@@ -73,7 +71,6 @@ var pad = 4;
 
 // TBD make a grid class
 var grid_container;
-grid_cells = [];
 var grid_x_min = 1;
 var grid_y_min = 0;
 var grid_x_max = 12;
@@ -146,78 +143,36 @@ function commandAdd(command_move) {
 }
 
 this.addLeft = function() {
-  commandAdd(new CommandMove(-1, 0, "left"));
+  commandAdd(new CommandMove(-0.2, 0, "left"));
 }
 this.addRight = function() {
-  commandAdd(new CommandMove( 1, 0, "right"));
+  commandAdd(new CommandMove( 0.2, 0, "right"));
 }
-this.addUp = function() {
-  commandAdd(new CommandMove( 0,-1, "up"));
+this.addGas = function() {
+  commandAdd(new CommandMove( 0,-1, "gas"));
 }
-this.addDown = function() {
-  commandAdd(new CommandMove( 0, 1, "down"));
+this.addBrakeReverse = function() {
+  commandAdd(new CommandMove( 0, 1, "brake_reverse"));
 }
 
-this.addWhite = function() {
-  commandAdd(new CommandColor("white", "#ffffff"));
-}
-this.addBlack = function() {
-  commandAdd(new CommandColor("black", "#000000"));
+function addCommandToScreen(handle, asset, y) {
+  var go_cell = makeCell(0, y, "#22ff22");
+  go_cell.addEventListener("click", handle);
+  stage.addChild(go_cell);
+  go_button = new Item(asset, 0, y);
+  stage.addChild(go_button.im);
 }
 
   var prog_container = new createjs.Container();
   stage.addChild(prog_container);
   drawProgram();
-
-  {
-  var arrow = new Item("up", 0, 0);
-  var go_cell = makeCell(0, 0, "#22dd22");
-  go_cell.addEventListener("click", this.addUp);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  {
-  var  arrow = new Item("down", 0, 1);
-  var go_cell = makeCell(0, 1, "#22dd22");
-  go_cell.addEventListener("click", this.addDown);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  {
-  var arrow = new Item("left", 0, 2);
-  var go_cell = makeCell(0, 2, "#22dd22");
-  go_cell.addEventListener("click", this.addLeft);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  {
-  var arrow = new Item("right", 0, 3);
-  var go_cell = makeCell(0, 3, "#22dd22");
-  go_cell.addEventListener("click", this.addRight);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  {
-  var arrow = new Item("white", 0, 4);
-  var go_cell = makeCell(0, 4, "#33ff33");
-  go_cell.addEventListener("click", this.addWhite);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  {
-  var arrow = new Item("black", 0, 5);
-  var go_cell = makeCell(0, 5, "#33dd33");
-  go_cell.addEventListener("click", this.addBlack);
-  stage.addChild(go_cell);
-  stage.addChild(arrow.im);
-  }
-  
-  var go_cell = makeCell(0, grid_y_max - 1, "#22ff22");
-  go_cell.addEventListener("click", runProgram);
-  stage.addChild(go_cell);
-  go_button = new Item("go", 0, grid_y_max - 1);
-  stage.addChild(go_button.im);
-
+ 
+  // TODO remove redundancy with function name and text string
+  addCommandToScreen(this.addGas, "gas", 0);
+  addCommandToScreen(this.addLeft, "left", 1);
+  addCommandToScreen(this.addRight, "right", 2);
+  addCommandToScreen(this.addBrakeReverse, "brake_reverse", 3);
+  addCommandToScreen(runProgram, "go", grid_y_max - 1);
 
 
 // draw the visual container of the program
@@ -248,8 +203,8 @@ this.update = function() {
 
     if (prog_counter < command_list.length) {
       var success = command_list[prog_counter].execute();
-      turtle.x = tile_wd * grid_x;
-      turtle.y = tile_wd * grid_y;
+      //car.x = tile_wd * grid_x;
+      //car.y = tile_wd * grid_y;
       prog_results[prog_counter] = success;
 
       for (var i = 0; i < prog_counter; i++) {
@@ -282,25 +237,6 @@ this.update = function() {
     }
   }
   stage.update(event);
-}
-
-function CommandColor(name, new_color) {
-  this.item = new Item(name, prog_x_min + command_list.length, prog_y_min);
-  
-  var color = new_color;
-
-  this.execute = function() {
-    // change the cell under the turtle to color
-    var x = turtle.x / tile_wd - grid_x_min;
-    var y = turtle.y / tile_ht - grid_y_min;
-
-    cell_ind = y * (grid_x_max - grid_x_min) + x;
-    console.log("change " + x + " " + y + " " + cell_ind + " color " + new_color);
-    grid_cells[cell_ind].graphics.beginFill(color).drawRect(
-        pad, pad, tile_wd - pad, tile_ht - pad);
-  
-    return true;
-  }
 }
 
 function CommandMove(ndx, ndy, name) {
@@ -372,13 +308,13 @@ function handleComplete() {
   the_program = new Program();
 
   {
-  turtle = new createjs.Bitmap(loader.getResult("turtle"));
-  var bounds = turtle.getBounds();
-  turtle.scaleX = tile_wd/bounds.width;
-  turtle.scaleY = tile_wd/bounds.height;
-  turtle.x = tile_wd * grid_x;
-  turtle.y = tile_wd * grid_y;
-  stage.addChild(turtle);
+  car = new createjs.Bitmap(loader.getResult("car"));
+  var bounds = car.getBounds();
+  car.scaleX = tile_wd/bounds.width;
+  car.scaleY = tile_wd/bounds.height;
+  car.x = tile_wd * grid_x;
+  car.y = tile_wd * grid_y;
+  stage.addChild(car);
   }
 
   stage.update();
@@ -412,10 +348,10 @@ function handleKeyDown(e) {
       the_program.addRight();
       return false;
    case KEYCODE_UP:
-      the_program.addUp();
+      the_program.addGas();
       return false;
    case KEYCODE_DOWN:
-      the_program.addDown();
+      the_program.addBrakeReverse();
       return false;
   }
   }
