@@ -99,6 +99,9 @@ function Car(name, x, y) {
   that.update = function() {
     that.x += that.vx;
     that.y += that.vy;
+    // friction
+    that.vx *= 0.95;
+    that.vy *= 0.95;
 
     that.im.x = that.x;
     that.im.y = that.y;
@@ -215,14 +218,15 @@ function runProgram(event) {
   }
 }
 
+var update_count = 0;
 this.update = function() {
 
-  if (is_executing) {
+  car.update();
+  if (is_executing && (update_count %= 5)) {
     
     if (prog_counter < command_list.length) {
       var success = command_list[prog_counter].execute();
       prog_results[prog_counter] = success;
-      car.update();
 
       for (var i = 0; i < prog_counter; i++) {
         var color = "#559955";
@@ -253,6 +257,7 @@ this.update = function() {
 
     }
   }
+  update_count += 1;
   stage.update(event);
 }
 
@@ -330,7 +335,7 @@ function handleComplete() {
   stage.update();
 
   createjs.Ticker.on("tick", tick);
-  createjs.Ticker.setFPS(2);
+  createjs.Ticker.setFPS(10);
 }
 
 // update limits commands from being added too quickly
