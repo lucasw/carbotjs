@@ -39,6 +39,9 @@ var palette;
 var go_button;
 
 var car;
+// the destination parking spot
+var goal;
+
 var tile_wd = 70;
 var tile_ht = tile_wd;
 var grid_x = 4;
@@ -70,6 +73,7 @@ function init() {
     {src:"assets/gas.png", id:"gas"},
     {src:"assets/brake_reverse.png", id:"brake_reverse"},
     {src:"assets/steering_wheel.png", id:"steering_wheel"},
+    {src:"assets/reset.png", id:"reset"},
     {src:"assets/go.png", id:"go"}
   ];
 
@@ -98,6 +102,21 @@ function clipE(val, ext) {
   return clip(val, -ext, ext); 
 }
 
+function makeCell(i, j, color) {
+  var cell = new createjs.Shape();
+  cell.x = i * tile_wd;
+  cell.y = j * tile_ht;
+  cell.graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+  return cell;
+}
+
+function addCommandToScreen(handle, asset, y) {
+  var go_cell = makeCell(0, y, "#22ff22");
+  go_cell.addEventListener("click", handle);
+  stage.addChild(go_cell);
+  go_button = new Item(asset, 0, y);
+  stage.addChild(go_button.im);
+}
 
 function Car(name, x, y) {
   var that = new Item(name, x, y);
@@ -110,10 +129,13 @@ function Car(name, x, y) {
   var angle = 0;
   //that.brake = 0;
   
-  var vx = 0;
-  var vy = 0;
-  var x = x * tile_wd;
-  var y = y * tile_wd;
+  var initial_x = x * tile_wd;
+  var initial_y = y * tile_wd;
+  
+  var vx;
+  var vy;
+  var x;
+  var y;
 
   var turn_max = 0.04;
 
@@ -121,6 +143,20 @@ function Car(name, x, y) {
   steering_wheel.im.regX = steering_wheel.bounds.width/2;
   steering_wheel.im.regY = steering_wheel.bounds.height/2;
   stage.addChild(steering_wheel.im);
+  
+  that.reset = function() {
+    that.turn_angle = 0;
+    that.gas = 0;
+    velocity = 0;
+    angle = 0;
+    vx = 0;
+    vy = 0;
+    x = initial_x;
+    y = initial_y;
+  }
+
+  addCommandToScreen(that.reset, "reset", grid_y_max - 2);
+  that.reset();
 
   that.update = function() {
     velocity += that.gas;
@@ -219,13 +255,6 @@ this.addBrakeReverse = function() {
   commandAdd(new CommandMove( 0, 1, "brake_reverse"));
 }
 
-function addCommandToScreen(handle, asset, y) {
-  var go_cell = makeCell(0, y, "#22ff22");
-  go_cell.addEventListener("click", handle);
-  stage.addChild(go_cell);
-  go_button = new Item(asset, 0, y);
-  stage.addChild(go_button.im);
-}
 
   var prog_container = new createjs.Container();
   stage.addChild(prog_container);
@@ -323,14 +352,6 @@ function CommandMove(turn, gas, name) {
 } // CommandMove
 
 } // Program
-
-function makeCell(i, j, color) {
-  var cell = new createjs.Shape();
-  cell.x = i * tile_wd;
-  cell.y = j * tile_ht;
-  cell.graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
-  return cell;
-}
 
 function drawGrid() {
   cell_list = []; 
