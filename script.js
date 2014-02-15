@@ -219,7 +219,7 @@ function Car(name, x, y) {
     var pad = 5;
     if (pointsInsideCell(x + vx, y + vy, goal, pad)) {
       msg.text = "YOU WIN!";
-      velocity *= 0.2;
+      that.gas *= 0.2;
     } else {
     for (var i = 0; i < barriers.length; i++) {
       if (pointsInsideCell(x + vx, y + vy, barriers[i], pad)) {
@@ -359,7 +359,7 @@ this.update = function() {
       prog_results[prog_counter] = success;
 
       for (var i = 0; i < prog_counter; i++) {
-        var color = "#559955";
+        var color = "#116611";
         if (!prog_results[i]) {
           color = "#995555";
         }
@@ -369,7 +369,7 @@ this.update = function() {
 
       var color = "#22ff22";
       if (!success) {
-        color = "#ff2222";
+        color = "#ff1212";
       }
       prog_cells[prog_counter].cell.graphics.beginFill(color).drawRect(
           pad, pad, tile_wd - pad, tile_ht - pad);
@@ -421,6 +421,26 @@ function drawGrid() {
   var goal_j = Math.round(Math.random() * (grid_y_max - grid_y_min - 1)) + grid_y_min;
 
   for (var j = grid_y_min; j < grid_y_max; j++) {
+    cell = makeCell(grid_x_min - 1, j, "#888888");
+    barriers.push(cell);
+    grid_container.addChild(cell);
+    
+    cell = makeCell(grid_x_max, j, "#888888");
+    barriers.push(cell);
+    grid_container.addChild(cell);
+  }
+
+  for (var i = grid_x_min; i < grid_x_max; i++) {
+    cell = makeCell(i, grid_y_min - 1, "#888888");
+    barriers.push(cell);
+    grid_container.addChild(cell);
+    
+    cell = makeCell(i, grid_y_max, "#888888");
+    barriers.push(cell);
+    grid_container.addChild(cell);
+  }
+
+  for (var j = grid_y_min; j < grid_y_max; j++) {
     for (var i = grid_x_min; i < grid_x_max; i++) {
 
       var cell;
@@ -445,9 +465,9 @@ function drawGrid() {
 
 function handleComplete() {
   
+  grid_cells = drawGrid();
 
   the_program = new Program();
-  grid_cells = drawGrid();
   
   msg = new createjs.Text("", "12px Courier", "#111");
 
