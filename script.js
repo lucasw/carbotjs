@@ -30,7 +30,6 @@ document.onkeydown = handleKeyDown;
 var wd;
 var ht;
 var loader;
-var car;
 
 
 function init() {
@@ -87,6 +86,25 @@ function Item(name, x, y) {
   this.im.x = x * tile_wd;
   this.im.y = y * tile_wd;
   console.log("new " + name + " at " + x + " " + y);
+}
+
+function Car(name, x, y) {
+  var that = new Item(name, x, y);
+
+  that.vx = 0;
+  that.vy = 0;
+  that.x = x * tile_wd;
+  that.y = y * tile_wd;
+
+  that.update = function() {
+    that.x += that.vx;
+    that.y += that.vy;
+
+    that.im.x = that.x;
+    that.im.y = that.y;
+  }
+ 
+  return that;
 }
 
 // TODO make this and drawGrid take x1,y1,x2,y2 parameters and merge them
@@ -200,12 +218,11 @@ function runProgram(event) {
 this.update = function() {
 
   if (is_executing) {
-
+    
     if (prog_counter < command_list.length) {
       var success = command_list[prog_counter].execute();
-      //car.x = tile_wd * grid_x;
-      //car.y = tile_wd * grid_y;
       prog_results[prog_counter] = success;
+      car.update();
 
       for (var i = 0; i < prog_counter; i++) {
         var color = "#559955";
@@ -247,8 +264,8 @@ function CommandMove(ndx, ndy, name) {
   var dy = ndy;
 
   this.execute = function() {
-    grid_x += dx;
-    grid_y += dy;
+    car.vx += dx;
+    car.vy += dy;
     
     var success = true;
 
@@ -307,15 +324,8 @@ function handleComplete() {
 
   the_program = new Program();
 
-  {
-  car = new createjs.Bitmap(loader.getResult("car"));
-  var bounds = car.getBounds();
-  car.scaleX = tile_wd/bounds.width;
-  car.scaleY = tile_wd/bounds.height;
-  car.x = tile_wd * grid_x;
-  car.y = tile_wd * grid_y;
-  stage.addChild(car);
-  }
+  car = new Car("car", 5, 5);
+  stage.addChild(car.im);
 
   stage.update();
 
