@@ -143,6 +143,15 @@ function pointsInsideRect(x, y, rx, ry, rwd, rht, pad) {
           );
 }
 
+function pointsInsideCell(x, y, cell, pad) {
+  var rx  = cell.x;
+  var ry  = cell.y;
+  var rwd = cell.wd;
+  var rht = cell.ht;
+
+  return pointsInsideRect(x, y , rx, ry, rwd, rht, pad);
+}
+
 function Car(name, x, y) {
   var that = new Item(name, x, y);
   that.im.regX = that.bounds.width/2;
@@ -201,17 +210,10 @@ function Car(name, x, y) {
     that.im.rotation = -angle * 180.0 / Math.PI;
     vx = velocity * Math.sin(angle); 
     vy = velocity * Math.cos(angle); 
-   
+    
+    var pad = 5;
     for (var i = 0; i < barriers.length; i++) {
-      var rx = barriers[i].x;
-      var ry = barriers[i].y;
-      var rwd = barriers[i].wd;
-      var rht = barriers[i].ht;
-      
-      var pad = 5;
-      if (
-          pointsInsideRect(x + vx, y + vy , rx, ry, rwd, rht, pad)
-          ) {
+      if (pointsInsideCell(x + vx, y + vy, barriers[i], pad)) {
         that.crash();
       }
     }
