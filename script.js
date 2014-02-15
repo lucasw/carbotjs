@@ -41,6 +41,7 @@ var go_button;
 var car;
 // the destination parking spot
 var goal;
+var barriers = [];
 
 var tile_wd = 70;
 var tile_ht = tile_wd;
@@ -357,9 +358,16 @@ function drawGrid() {
   cell_list = []; 
   for (var j = grid_y_min; j < grid_y_max; j++) {
     for (var i = grid_x_min; i < grid_x_max; i++) {
-      var cell = makeCell(i, j, "#eeeeee"); 
-      cell_list.push(cell);
+
+      var cell;
+      if (Math.random() < 0.95) {
+        cell = makeCell(i, j, "#eeeeee"); 
+      } else {
+        cell = makeCell(i, j, "#555555");
+        barriers.push(cell);
+      }
       grid_container.addChild(cell);
+      cell_list.push(cell);
     }
   }
 
