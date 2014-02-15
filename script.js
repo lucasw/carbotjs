@@ -179,7 +179,22 @@ function Car(name, x, y) {
 
   var res = loader.getResult("tire");
   console.log("name " + name + " " + res);
-  this.im = new createjs.Bitmap(res);
+  var tire_im_1 = new createjs.Bitmap(res);
+  tire_im_1.x = -14;
+  tire_im_1.y = -20;
+  tire_im_1.regX = tire_im_1.getBounds().width/2;
+  tire_im_1.regY = tire_im_1.getBounds().height/2;
+  tire_im_1.scaleX = 1;
+  tire_im_1.scaleY = 1;
+  car_all.addChild(tire_im_1);
+  var tire_im_2 = new createjs.Bitmap(res);
+  tire_im_2.x =  21;
+  tire_im_2.y = -20;
+  tire_im_2.regX = tire_im_2.getBounds().width/2;
+  tire_im_2.regY = tire_im_2.getBounds().height/2;
+  tire_im_2.scaleX = 1;
+  tire_im_2.scaleY = 1;
+  car_all.addChild(tire_im_2);
 
   that.turn_angle = 0;
   that.gas = 0;
@@ -230,7 +245,8 @@ function Car(name, x, y) {
 
     that.turn_angle = clipE(that.turn_angle, turn_max);
     steering_wheel.im.rotation = that.turn_angle / turn_max * 50.0;
-
+    tire_im_1.rotation = steering_wheel.im.rotation;
+    tire_im_2.rotation = steering_wheel.im.rotation;
     //console.log(that.turn_angle);
     angle += that.turn_angle * velocity;
     car_all.rotation = -angle * 180.0 / Math.PI;
@@ -263,7 +279,6 @@ function Car(name, x, y) {
 
     container.x = x;
     container.y = y;
-    console.log("cont x " + container.y + " " + y);
   }
  
   return that;
