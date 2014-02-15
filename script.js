@@ -31,31 +31,8 @@ var wd;
 var ht;
 var loader;
 
-
-function init() {
-  stage = new createjs.Stage("carbot");
-
-  wd = stage.canvas.width;
-  ht = stage.canvas.height;
-
-  var context = stage.canvas.getContext("2d");
-  context.imageSmoothingEnabled = false;
-  context.mozImageSmoothingEnabled = false;
-  context.webkitImageSmoothingEnabled = false;
-
-  manifest = [
-    {src:"assets/car.png", id:"car"},
-    {src:"assets/left.png", id:"left"},
-    {src:"assets/right.png", id:"right"},
-    {src:"assets/gas.png", id:"gas"},
-    {src:"assets/brake_reverse.png", id:"brake_reverse"},
-    {src:"assets/go.png", id:"go"}
-  ];
-
-  loader = new createjs.LoadQueue(false);
-  loader.addEventListener("complete", handleComplete);
-  loader.loadManifest(manifest);
-}
+var the_program;
+var steering_wheel;
 
 var palette;
 
@@ -75,6 +52,32 @@ var grid_y_min = 0;
 var grid_x_max = 12;
 var grid_y_max = 8;
 
+function init() {
+  stage = new createjs.Stage("carbot");
+
+  wd = stage.canvas.width;
+  ht = stage.canvas.height;
+
+  var context = stage.canvas.getContext("2d");
+  context.imageSmoothingEnabled = false;
+  context.mozImageSmoothingEnabled = false;
+  context.webkitImageSmoothingEnabled = false;
+
+  manifest = [
+    {src:"assets/car.png", id:"car"},
+    {src:"assets/left.png", id:"left"},
+    {src:"assets/right.png", id:"right"},
+    {src:"assets/gas.png", id:"gas"},
+    {src:"assets/brake_reverse.png", id:"brake_reverse"},
+    {src:"assets/steering_wheel.png", id:"steering_wheel"},
+    {src:"assets/go.png", id:"go"}
+  ];
+
+  loader = new createjs.LoadQueue(false);
+  loader.addEventListener("complete", handleComplete);
+  loader.loadManifest(manifest);
+}
+
 // TODO this and CommandMove I think will merge
 function Item(name, x, y) {
   var res = loader.getResult(name);
@@ -91,8 +94,8 @@ function Item(name, x, y) {
 function clip(val, min, max) {
   return Math.max(Math.min(val, max), min); 
 }
-function clip(val, ext) {
-  return Math.max(Math.min(val, ext), -ext); 
+function clipE(val, ext) {
+  return clip(val, -ext, ext); 
 }
 
 
@@ -113,17 +116,31 @@ function Car(name, x, y) {
   var y = y * tile_wd;
 
   var turn_max = 0.04;
+
+  var steering_wheel = new Item("steering_wheel", grid_x_max/2, grid_y_max); 
+  steering_wheel.im.regX = steering_wheel.bounds.width/2;
+  steering_wheel.im.regY = steering_wheel.bounds.height/2;
+  stage.addChild(steering_wheel.im);
+
   that.update = function() {
     velocity += that.gas;
 
-    that.turn_angle = clip(that.turn_angle, turn_max);
-    console.log(that.turn_angle);
+    that.turn_angle = clipE(that.turn_angle, turn_max);
+    steering_wheel.im.rotation = that.turn_angle / turn_max * 50.0;
+
+    //console.log(that.turn_angle);
     angle += that.turn_angle * velocity;
     that.im.rotation = -angle * 180.0 / Math.PI;
     vx = velocity * Math.sin(angle); 
     vy = velocity * Math.cos(angle); 
     x += vx;
     y += vy;
+
+    //console.log(x + " clipped to " + clip(x, 0, grid_x_max * tile_wd) + " " + 
+    //    grid_x_max * tile_wd);
+    x = clip(x, 0, grid_x_max * tile_wd);
+    y = clip(y, 0, grid_y_max * tile_wd);
+
     // friction
     velocity *= 0.9;
     that.gas *= 0.99;
@@ -299,23 +316,6 @@ function CommandMove(turn, gas, name) {
     car.gas += gas;
     
     var success = true;
-
-    if (grid_x >= grid_x_max) {
-      grid_x = grid_x_max - 1;
-      success = false;
-    }
-    if (grid_y >= grid_y_max) {
-      grid_y = grid_y_max - 1;
-      success = false;
-    }
-    if (grid_y < grid_y_min) {
-      grid_y = grid_y_min;
-      success = false;
-    }
-    if (grid_x < grid_x_min) {
-      grid_x = grid_x_min;
-      success = false;
-    }
     update = true;
     return success;
   }
@@ -336,7 +336,7 @@ function drawGrid() {
   cell_list = []; 
   for (var j = grid_y_min; j < grid_y_max; j++) {
     for (var i = grid_x_min; i < grid_x_max; i++) {
-      var cell = makeCell(i, j, "#cccccc"); 
+      var cell = makeCell(i, j, "#eeeeee"); 
       cell_list.push(cell);
       grid_container.addChild(cell);
     }
@@ -345,7 +345,6 @@ function drawGrid() {
   return cell_list;
 }
 
-var the_program;
 
 function handleComplete() {
   
@@ -357,6 +356,7 @@ function handleComplete() {
 
   car = new Car("car", 5, 5);
   stage.addChild(car.im);
+
 
   stage.update();
 
