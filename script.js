@@ -80,31 +80,55 @@ function Item(name, x, y) {
   var res = loader.getResult(name);
   console.log("name " + name + " " + res);
   this.im = new createjs.Bitmap(res);
-  var bounds = this.im.getBounds();
-  this.im.scaleX = tile_wd/bounds.width;
-  this.im.scaleY = tile_wd/bounds.height;
+  this.bounds = this.im.getBounds();
+  this.im.scaleX = tile_wd/this.bounds.width;
+  this.im.scaleY = tile_wd/this.bounds.height;
   this.im.x = x * tile_wd;
   this.im.y = y * tile_wd;
   console.log("new " + name + " at " + x + " " + y);
 }
 
+function clip(val, min, max) {
+  return Math.max(Math.min(val, max), min); 
+}
+function clip(val, ext) {
+  return Math.max(Math.min(val, ext), -ext); 
+}
+
+
 function Car(name, x, y) {
   var that = new Item(name, x, y);
+  that.im.regX = that.bounds.width/2;
+  that.im.regY = that.bounds.height/2;
 
-  that.vx = 0;
-  that.vy = 0;
-  that.x = x * tile_wd;
-  that.y = y * tile_wd;
+  that.turn_angle = 0;
+  that.gas = 0;
+  var velocity = 0;
+  var angle = 0;
+  //that.brake = 0;
+  
+  var vx = 0;
+  var vy = 0;
+  var x = x * tile_wd;
+  var y = y * tile_wd;
 
+  var turn_max = 0.04;
   that.update = function() {
-    that.x += that.vx;
-    that.y += that.vy;
-    // friction
-    that.vx *= 0.95;
-    that.vy *= 0.95;
+    velocity += that.gas;
 
-    that.im.x = that.x;
-    that.im.y = that.y;
+    that.turn_angle = clip(that.turn_angle, turn_max);
+    console.log(that.turn_angle);
+    angle += that.turn_angle * velocity;
+    that.im.rotation = -angle * 180.0 / Math.PI;
+    vx = velocity * Math.sin(angle); 
+    vy = velocity * Math.cos(angle); 
+    x += vx;
+    y += vy;
+    // friction
+    velocity *= 0.9;
+
+    that.im.x = x;
+    that.im.y = y;
   }
  
   return that;
@@ -164,10 +188,10 @@ function commandAdd(command_move) {
 }
 
 this.addLeft = function() {
-  commandAdd(new CommandMove(-0.2, 0, "left"));
+  commandAdd(new CommandMove(-0.01, 0, "left"));
 }
 this.addRight = function() {
-  commandAdd(new CommandMove( 0.2, 0, "right"));
+  commandAdd(new CommandMove( 0.01, 0, "right"));
 }
 this.addGas = function() {
   commandAdd(new CommandMove( 0,-1, "gas"));
@@ -261,16 +285,16 @@ this.update = function() {
   stage.update(event);
 }
 
-function CommandMove(ndx, ndy, name) {
+function CommandMove(turn, gas, name) {
   
   this.item = new Item(name, prog_x_min + command_list.length, prog_y_min);
   
-  var dx = ndx;
-  var dy = ndy;
+  var turn = turn;
+  var gas = gas;
 
   this.execute = function() {
-    car.vx += dx;
-    car.vy += dy;
+    car.turn_angle += turn;
+    car.gas += gas;
     
     var success = true;
 
