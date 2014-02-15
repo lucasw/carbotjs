@@ -72,6 +72,7 @@ function init() {
 
   manifest = [
     {src:"assets/car.png", id:"car"},
+    {src:"assets/tire.png", id:"tire"},
     {src:"assets/left.png", id:"left"},
     {src:"assets/right.png", id:"right"},
     {src:"assets/gas.png", id:"gas"},
@@ -156,9 +157,29 @@ function pointsInsideCell(x, y, cell, pad) {
 }
 
 function Car(name, x, y) {
+  // has the xy position  of the car
+  var container = new createjs.Container();
+  container.x = 0;
+  container.y = 0;
+  stage.addChild(container);
+  // the rotation of the car
+  var car_all = new createjs.Container();
+  car_all.x = 0;
+  car_all.y = 0;
+  container.addChild(car_all);
+  
   var that = new Item(name, x, y);
-  that.im.regX = that.bounds.width/2;
-  that.im.regY = that.bounds.height/2;
+  that.im.x = -that.bounds.width/2;
+  that.im.y = -that.bounds.height/2;
+  //car_all.regX = that.bounds.width/2;
+  //car_all.regY = that.bounds.height/2;
+  //container.scaleX = that.scaleX;
+  //container.scaleY = that.scaleY;
+  car_all.addChild(that.im);
+
+  var res = loader.getResult("tire");
+  console.log("name " + name + " " + res);
+  this.im = new createjs.Bitmap(res);
 
   that.turn_angle = 0;
   that.gas = 0;
@@ -176,7 +197,7 @@ function Car(name, x, y) {
 
   var turn_max = 0.04;
 
-  var steering_wheel = new Item("steering_wheel", grid_x_max/2, grid_y_max); 
+  var steering_wheel = new Item("steering_wheel", grid_x_max/2, grid_y_max + 0.5); 
   steering_wheel.im.regX = steering_wheel.bounds.width/2;
   steering_wheel.im.regY = steering_wheel.bounds.height/2;
   stage.addChild(steering_wheel.im);
@@ -212,7 +233,7 @@ function Car(name, x, y) {
 
     //console.log(that.turn_angle);
     angle += that.turn_angle * velocity;
-    that.im.rotation = -angle * 180.0 / Math.PI;
+    car_all.rotation = -angle * 180.0 / Math.PI;
     vx = velocity * Math.sin(angle); 
     vy = velocity * Math.cos(angle); 
     
@@ -240,8 +261,9 @@ function Car(name, x, y) {
     that.gas *= 0.99;
     that.turn_angle *= 0.99;
 
-    that.im.x = x;
-    that.im.y = y;
+    container.x = x;
+    container.y = y;
+    console.log("cont x " + container.y + " " + y);
   }
  
   return that;
@@ -472,7 +494,6 @@ function handleComplete() {
   msg = new createjs.Text("", "12px Courier", "#111");
 
   car = new Car("car", 5, 5);
-  stage.addChild(car.im);
   
   {
   msg.scaleX = 12;
