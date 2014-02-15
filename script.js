@@ -105,9 +105,14 @@ function clipE(val, ext) {
 
 function makeCell(i, j, color) {
   var cell = new createjs.Shape();
+  cell.wd = tile_wd;
+  cell.ht = tile_ht;
   cell.x = i * tile_wd;
   cell.y = j * tile_ht;
-  cell.graphics.beginFill(color).drawRect(pad, pad, tile_wd - pad, tile_ht - pad);
+  cell.graphics.beginFill(color).drawRect(
+      pad, pad, 
+      cell.wd - pad, cell.ht - pad
+      );
   return cell;
 }
 
@@ -117,6 +122,25 @@ function addCommandToScreen(handle, asset, y) {
   stage.addChild(go_cell);
   go_button = new Item(asset, 0, y);
   stage.addChild(go_button.im);
+}
+
+function pointInsideRect(x, y, rx, ry, rwd, rht) {
+  
+  return (
+    (x > rx) &&
+    (y > ry) &&
+    (x < rx + rwd) &&
+    (y < ry + rht) 
+    );
+}
+
+function pointsInsideRect(x, y, rx, ry, rwd, rht, pad) {
+  return (
+          pointInsideRect(x + pad, y + pad, rx, ry, rwd, rht) ||
+          pointInsideRect(x + pad, y - pad, rx, ry, rwd, rht) ||
+          pointInsideRect(x - pad, y + pad, rx, ry, rwd, rht) ||
+          pointInsideRect(x - pad, y - pad, rx, ry, rwd, rht)
+          );
 }
 
 function Car(name, x, y) {
@@ -159,6 +183,13 @@ function Car(name, x, y) {
   addCommandToScreen(that.reset, "reset", grid_y_max - 2);
   that.reset();
 
+  that.crash = function() {
+    vx = 0;
+    vy = 0;
+    velocity = 0;
+    that.gas = 0;
+  }
+
   that.update = function() {
     velocity += that.gas;
 
@@ -170,9 +201,23 @@ function Car(name, x, y) {
     that.im.rotation = -angle * 180.0 / Math.PI;
     vx = velocity * Math.sin(angle); 
     vy = velocity * Math.cos(angle); 
+   
+    for (var i = 0; i < barriers.length; i++) {
+      var rx = barriers[i].x;
+      var ry = barriers[i].y;
+      var rwd = barriers[i].wd;
+      var rht = barriers[i].ht;
+      
+      var pad = 5;
+      if (
+          pointsInsideRect(x + vx, y + vy , rx, ry, rwd, rht, pad)
+          ) {
+        that.crash();
+      }
+    }
+
     x += vx;
     y += vy;
-
     //console.log(x + " clipped to " + clip(x, 0, grid_x_max * tile_wd) + " " + 
     //    grid_x_max * tile_wd);
     x = clip(x, 0, grid_x_max * tile_wd);
@@ -355,16 +400,20 @@ function CommandMove(turn, gas, name) {
 } // Program
 
 function drawGrid() {
+  grid_container = new createjs.Container();
+  stage.addChild(grid_container);
+  
   cell_list = []; 
   for (var j = grid_y_min; j < grid_y_max; j++) {
     for (var i = grid_x_min; i < grid_x_max; i++) {
 
       var cell;
-      if (Math.random() < 0.95) {
-        cell = makeCell(i, j, "#eeeeee"); 
-      } else {
+      var make_barrier = (Math.random() > 0.95);
+      if (make_barrier) {
         cell = makeCell(i, j, "#555555");
         barriers.push(cell);
+      } else {
+        cell = makeCell(i, j, "#eeeeee"); 
       }
       grid_container.addChild(cell);
       cell_list.push(cell);
@@ -377,14 +426,13 @@ function drawGrid() {
 
 function handleComplete() {
   
-  grid_container = new createjs.Container();
-  stage.addChild(grid_container);
-  grid_cells = drawGrid();
 
   the_program = new Program();
+  grid_cells = drawGrid();
 
   car = new Car("car", 5, 5);
   stage.addChild(car.im);
+  
 
 
   stage.update();
