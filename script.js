@@ -126,6 +126,8 @@ function Car(name, x, y) {
     y += vy;
     // friction
     velocity *= 0.9;
+    that.gas *= 0.99;
+    that.turn_angle *= 0.99;
 
     that.im.x = x;
     that.im.y = y;
