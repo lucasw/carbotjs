@@ -31,6 +31,9 @@ var wd;
 var ht;
 var loader;
 
+// message to user, usually blank, overlayed everything else
+var msg;
+
 var the_program;
 var steering_wheel;
 
@@ -53,7 +56,7 @@ var pad = 4;
 var grid_container;
 var grid_x_min = 1;
 var grid_y_min = 0;
-var grid_x_max = 12;
+var grid_x_max = 16;
 var grid_y_max = 8;
 
 function init() {
@@ -187,6 +190,7 @@ function Car(name, x, y) {
     vy = 0;
     x = initial_x;
     y = initial_y;
+    msg.text = "";
   }
 
   addCommandToScreen(that.reset, "reset", grid_y_max - 2);
@@ -197,6 +201,7 @@ function Car(name, x, y) {
     vy *= -0.5;
     velocity *= -0.3;
     that.gas = 0;
+    msg.text = "CRASH!";
   }
 
   that.update = function() {
@@ -212,10 +217,15 @@ function Car(name, x, y) {
     vy = velocity * Math.cos(angle); 
     
     var pad = 5;
+    if (pointsInsideCell(x + vx, y + vy, goal, pad)) {
+      msg.text = "YOU WIN!";
+      velocity *= 0.2;
+    } else {
     for (var i = 0; i < barriers.length; i++) {
       if (pointsInsideCell(x + vx, y + vy, barriers[i], pad)) {
         that.crash();
       }
+    }
     }
 
     x += vx;
@@ -342,7 +352,7 @@ var update_count = 0;
 this.update = function() {
 
   car.update();
-  if (is_executing && (update_count %= 5)) {
+  if (is_executing && (update_count % 10 == 0)) {
     
     if (prog_counter < command_list.length) {
       var success = command_list[prog_counter].execute();
@@ -405,12 +415,16 @@ function drawGrid() {
   grid_container = new createjs.Container();
   stage.addChild(grid_container);
   
-  cell_list = []; 
+  cell_list = [];
+  
+  var goal_i = Math.round(Math.random() * (grid_x_max - grid_x_min - 1)) + grid_x_min;
+  var goal_j = Math.round(Math.random() * (grid_y_max - grid_y_min - 1)) + grid_y_min;
+
   for (var j = grid_y_min; j < grid_y_max; j++) {
     for (var i = grid_x_min; i < grid_x_max; i++) {
 
       var cell;
-      var make_barrier = (Math.random() > 0.95);
+      var make_barrier = (Math.random() > 0.95) && (j != goal_j) && (i != goal_i); 
       if (make_barrier) {
         cell = makeCell(i, j, "#555555");
         barriers.push(cell);
@@ -422,6 +436,9 @@ function drawGrid() {
     }
   }
 
+  goal = makeCell(goal_i, goal_j, "#228833");
+  grid_container.addChild(goal);
+
   return cell_list;
 }
 
@@ -431,11 +448,19 @@ function handleComplete() {
 
   the_program = new Program();
   grid_cells = drawGrid();
+  
+  msg = new createjs.Text("", "12px Courier", "#111");
 
   car = new Car("car", 5, 5);
   stage.addChild(car.im);
   
-
+  {
+  msg.scaleX = 12;
+  msg.scaleY = 12;
+  msg.x = 100;
+  msg.y = 200;
+  stage.addChild(msg);
+  }
 
   stage.update();
 
