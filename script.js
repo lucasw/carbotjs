@@ -193,9 +193,9 @@ function Car(name, x, y) {
   that.reset();
 
   that.crash = function() {
-    vx = 0;
-    vy = 0;
-    velocity = 0;
+    vx *= -0.5;
+    vy *= -0.5;
+    velocity *= -0.3;
     that.gas = 0;
   }
 
