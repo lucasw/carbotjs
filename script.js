@@ -374,9 +374,16 @@ function drawProgram() {
   prog_results.length = prog_cells.length;
 }
 
-function runProgram(event) {
-  console.log("execute");
+function stopProgram(event) {
+  
   prog_counter = 0;
+  is_executing = false;
+  car.reset();
+}
+
+function runProgram(event) {
+  stopProgram();
+  console.log("execute");
   is_executing = true;
 
   for (var i = 0; i < prog_cells.length; i++) {
